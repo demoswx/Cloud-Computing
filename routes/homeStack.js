@@ -1,24 +1,61 @@
-import * as React from 'react';
-import { Button, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeScreen from '../screens/HomeScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import { createAppContainer } from 'react-navigation';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity,Button,image } from 'react-native';
+import { Camera } from 'expo-camera';
+import {CameraType} from 'expo-camera/build/Camera.types';
 
-const Stack = createStackNavigator();
+ function homeStack() {
+  const [hasPermission, setHasPermission] = useState(null);
+  const [image,setImage] =useState(null);
+  const [camera,setCamera] =useState(null);
+  const [type, setType] = useState(Camera.Constants.Type.back);
 
-function HomeStack() {
+  useEffect(() => {
+    (async () => {
+      const  cameraStatus  = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(cameraStatus.status === 'granted');
+    })();
+  }, []);
+  const takePicture=async ()=>{
+      if(camera){
+          const data =await camera.takePictureAsync(null)
+          setImage(data.url);
+      }
+  }
+  if (hasPermission===false){
+      return <Text>NO camera Access</Text>;
+  }
   return (
-    <Stack.Navigator>
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="Notifications" component={NotificationsScreen} />
-      <Stack.Screen name="Profile" component={ProfileScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
-    </Stack.Navigator>
+    <View style={{flex:1}}>
+    <View style={styles.cameraContainer}>
+        <Camera ref={ref=>setCamera(ref)}
+        style={styles.fixedRatio}
+        type={type}
+        ratio={'1:2'}
+        ></Camera>
+    </View>
+    <Button
+    title="Filp camera"
+    onPress={()=>{
+        setType(type===Camera.Constants.Type.back? Camera.Constants.Type.front:Camera.Constants.Type.back);
+    }}>
+    </Button>
+    <Button title='Take Pictre'
+    onPress={()=>takePicture()}
+    />
+    {image && <Image source={{url:image}} style={{flex:1}}/>}
+    </View>
   );
 }
-export default HomeStack;
 
+const styles = StyleSheet.create({
+ cameraContainer:{
+     flex:1,
+     flexDirection:'row'
+ },
+ fixedRatio:{
+     flex:1,
+     aspectRatio:1
+ }
+});
+
+export default homeStack;
