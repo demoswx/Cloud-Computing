@@ -1,15 +1,24 @@
 import * as React from 'react';
-import { Button, View } from 'react-native';
+import { Button, View, Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import HomeStack from './routes/homeStack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Homestack from './routes/homestack';
+
+import { useFonts, Inter_900Black } from '@expo-google-fonts/inter';
 
 
 
-export default function App() {
+
+function App() {
+  let [fontsLoaded] = useFonts({
+    Inter_900Black,
+  });
+ 
   return (
     <NavigationContainer>
-   <HomeStack/>
+      <Homestack/>
     </NavigationContainer>
   );
 }
+
+export default App;

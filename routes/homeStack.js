@@ -1,61 +1,48 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity,Button,image } from 'react-native';
-import { Camera } from 'expo-camera';
-import {CameraType} from 'expo-camera/build/Camera.types';
+import * as React from 'react';
+import { Button, View, Text } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import HomeScreen from '../screens/HomeScreen';
+import DetailsScreen from '../screens/DetailsScreen';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'; 
 
- function homeStack() {
-  const [hasPermission, setHasPermission] = useState(null);
-  const [image,setImage] =useState(null);
-  const [camera,setCamera] =useState(null);
-  const [type, setType] = useState(Camera.Constants.Type.back);
 
-  useEffect(() => {
-    (async () => {
-      const  cameraStatus  = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(cameraStatus.status === 'granted');
-    })();
-  }, []);
-  const takePicture=async ()=>{
-      if(camera){
-          const data =await camera.takePictureAsync(null)
-          setImage(data.url);
-      }
-  }
-  if (hasPermission===false){
-      return <Text>NO camera Access</Text>;
-  }
+
+
+const Stack = createNativeStackNavigator();
+
+function homestack() {
   return (
-    <View style={{flex:1}}>
-    <View style={styles.cameraContainer}>
-        <Camera ref={ref=>setCamera(ref)}
-        style={styles.fixedRatio}
-        type={type}
-        ratio={'1:2'}
-        ></Camera>
-    </View>
-    <Button
-    title="Filp camera"
-    onPress={()=>{
-        setType(type===Camera.Constants.Type.back? Camera.Constants.Type.front:Camera.Constants.Type.back);
-    }}>
-    </Button>
-    <Button title='Take Pictre'
-    onPress={()=>takePicture()}
-    />
-    {image && <Image source={{url:image}} style={{flex:1}}/>}
-    </View>
+    
+      <Stack.Navigator initialRouteName="Home">
+        <Stack.Screen name="Home"   options={{
+          title: '智慧門鎖',
+          headerStyle: {
+            backgroundColor: '#f4511e',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+          headerRight: () => (
+           
+            <Ionicons name="md-person-sharp" size={24} color="black" />
+          ),
+        }}   component={HomeScreen} />
+        <Stack.Screen name="Details"  options={{
+          title: "相機",
+          headerStyle: {
+            backgroundColor: '#f4511e',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}  component={DetailsScreen} />
+      </Stack.Navigator>
+    
   );
 }
 
-const styles = StyleSheet.create({
- cameraContainer:{
-     flex:1,
-     flexDirection:'row'
- },
- fixedRatio:{
-     flex:1,
-     aspectRatio:1
- }
-});
-
-export default homeStack;
+export default homestack;

@@ -1,17 +1,25 @@
 import * as React from 'react';
-import { Button, View } from 'react-native';
+import { Button, View, Text ,Image} from 'react-native';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { Dimensions } from 'react-native';
 
 
-
-function HomeScreen({ navigation }) {
+export default function HomeScreen({ navigation }) {
+  const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
+ 
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <Button
-          title="Go to Profile"
-          onPress={() => navigation.navigate('Profile')}
-        />
+      <View>
+       <Image source={require('../assets/welcomehome.jpg')}
+        style={{ width: windowWidth, height: 450 }}
+        onPress={() => navigation.navigate('Details')}/>
+
+         <Button
+        container
+        title="開始識別"
+        color="#f194ff"
+        onPress={() => navigation.navigate('Details')}
+      />
       </View>
     );
   }
-
-  export  default HomeScreen;
