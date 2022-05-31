@@ -7,7 +7,6 @@ import * as MediaLibrary from 'expo-media-library';
 import {CameraType} from 'expo-camera/build/Camera.types';
 import { back } from 'react-native/Libraries/Animated/Easing';
 import { FontAwesome5 } from '@expo/vector-icons';
-import  io from 'socket.io-client';
 
 
 
@@ -22,7 +21,6 @@ export default function DetailsScreen() {
   const [photo, setPhoto] = useState();
   const [type, setType] = useState(CameraType.back);
   const [ws,setwa]=useState(null);
-  ws.on('connect')
 
   useEffect(() => {
     (async () => {
