@@ -7,6 +7,8 @@ import * as MediaLibrary from 'expo-media-library';
 import {CameraType} from 'expo-camera/build/Camera.types';
 import { back } from 'react-native/Libraries/Animated/Easing';
 import { FontAwesome5 } from '@expo/vector-icons';
+import  io from 'socket.io-client';
+
 
 
 
@@ -19,6 +21,8 @@ export default function DetailsScreen() {
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
   const [photo, setPhoto] = useState();
   const [type, setType] = useState(CameraType.back);
+  const [ws,setwa]=useState(null);
+  ws.on('connect')
 
   useEffect(() => {
     (async () => {
@@ -64,9 +68,42 @@ export default function DetailsScreen() {
   
 
 
-
-
-
+    let axiosPostRequestCancel = null
+    async function uploadFiles(data, progressCallBack, callBack) {
+      let formData = new FormData();
+    
+      data.map((item,index)=>{
+        let file = {
+          uri: photo.uri,
+          type: 'application/octet-stream',
+          name: photo
+        };
+        formData.append("file", file);
+      })
+      let config = {
+        //添加请求头
+        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 600000,
+        //添加上传进度监听事件
+        onUploadProgress: e => {
+          let completeProgress = (e.loaded / e.total * 100) | 0;
+          progressCallBack && progressCallBack(completeProgress)
+        },
+        cancelToken: new axios.CancelToken(function executor(c) {
+          axiosPostRequestCancel = c // 用于取消上传
+        })
+      };
+    
+      axios.post("伺服器地址", formData, config)
+      .then(
+        function (response)
+        {
+          callBack && callBack(true, response)
+        })
+        .catch(function (error) {
+          callBack && callBack(false)
+        });
+    }
  
 
 
@@ -75,7 +112,7 @@ export default function DetailsScreen() {
       <SafeAreaView style={styles.container}>
         <Image style={styles.preview} source={{ uri: "data:image/jpg;base64," + photo.base64 }} />
         <Button title="分享照片" onPress={sharePic} />
-        {hasMediaLibraryPermission ? <Button title="傳送照片" onPress={savePhoto} /> : undefined}
+        {hasMediaLibraryPermission ? <Button title="傳送照片" onPress={uploadFiles} /> : undefined}
         <Button title="重新拍照" onPress={() => setPhoto(undefined)} />
       </SafeAreaView>
     );
