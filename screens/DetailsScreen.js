@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, SafeAreaView, Button, Image } from 'react-native';
+import { StyleSheet, Text, View, SafeAreaView, Button, Image,TouchableOpacity } from 'react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Camera } from 'expo-camera';
 import { shareAsync } from 'expo-sharing';
@@ -7,6 +7,8 @@ import * as MediaLibrary from 'expo-media-library';
 import {CameraType} from 'expo-camera/build/Camera.types';
 import { back } from 'react-native/Libraries/Animated/Easing';
 import { FontAwesome5 } from '@expo/vector-icons';
+import axios from 'axios';
+import Constants from '../constants';
 
 
 
@@ -15,11 +17,11 @@ import { FontAwesome5 } from '@expo/vector-icons';
 
 
 export default function DetailsScreen() {
+ 
   let cameraRef = useRef();
   const [hasCameraPermission, setHasCameraPermission] = useState();
   const [hasMediaLibraryPermission, setHasMediaLibraryPermission] = useState();
   const [photo, setPhoto] = useState();
-  const [type, setType] = useState(CameraType.back);
   const [ws,setwa]=useState(null);
 
   useEffect(() => {
@@ -30,6 +32,61 @@ export default function DetailsScreen() {
       setHasMediaLibraryPermission(mediaLibraryPermission.status === "granted");
     })();
   }, []);
+
+  
+    async function uploadImage(data) {
+        console.log(Constants.SERVER_URL)
+        const d = new FormData();
+        d.append('file', data);
+        console.log(d)
+        try {
+          const response = await axios.post(
+            `${Constants.SERVER_URL}/`,
+            d,
+            {
+              headers: { 
+                'Content-Type': 'multipart/form-data',
+              },
+            },
+          );
+          const {data} = response;
+          console.log("success")
+          setPhoto(data);
+        } catch(error) {
+          console.log(error)
+          console.log("失败")
+        }
+      }
+
+
+   async function UploadRequest( datas) {
+    
+      const d = new FormData();
+        d.append('file', datas);
+    
+      console.log("exit")
+      const params = {
+          method: 'POST',
+          body: d,
+          headers: {
+              'Content-Type': 'multipart/form-data'
+          },
+          timeout: 5000 // 5s超时
+      };
+  
+      return fetch(`${constants.SERVER_URL}`, params)
+          .then(response => response.json())
+          .then(data => data)
+          .catch(error => {
+              return {error_code: -3, error_msg:'请求异常，请重试'}
+          })
+          
+  }
+  
+
+
+
+
 
   if (hasCameraPermission === undefined) {
     return <Text>Requesting permissions...</Text>
@@ -46,6 +103,14 @@ export default function DetailsScreen() {
     
     let newPhoto = await cameraRef.current.takePictureAsync(options);
     setPhoto(newPhoto);
+    const source={
+      uri:newPhoto.uri,
+      type:'multipart/form-data',
+      name:"randomname",
+    }
+    console.log(source)
+    console.log("圖片獲取成功")
+    uploadImage(source)
   };
 
 
@@ -53,6 +118,8 @@ export default function DetailsScreen() {
     let sharePic = () => {
       shareAsync(photo.uri).then(() => {
         setPhoto(undefined);
+        console.log(photo.uri)
+  
       });
     };
 
@@ -66,42 +133,8 @@ export default function DetailsScreen() {
   
 
 
-    let axiosPostRequestCancel = null
-    async function uploadFiles(data, progressCallBack, callBack) {
-      let formData = new FormData();
-    
-      data.map((item,index)=>{
-        let file = {
-          uri: photo.uri,
-          type: 'application/octet-stream',
-          name: photo
-        };
-        formData.append("file", file);
-      })
-      let config = {
-        //添加请求头
-        headers: { "Content-Type": "multipart/form-data" },
-        timeout: 600000,
-        //添加上传进度监听事件
-        onUploadProgress: e => {
-          let completeProgress = (e.loaded / e.total * 100) | 0;
-          progressCallBack && progressCallBack(completeProgress)
-        },
-        cancelToken: new axios.CancelToken(function executor(c) {
-          axiosPostRequestCancel = c // 用于取消上传
-        })
-      };
-    
-      axios.post("伺服器地址", formData, config)
-      .then(
-        function (response)
-        {
-          callBack && callBack(true, response)
-        })
-        .catch(function (error) {
-          callBack && callBack(false)
-        });
-    }
+
+
  
 
 
@@ -109,9 +142,16 @@ export default function DetailsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <Image style={styles.preview} source={{ uri: "data:image/jpg;base64," + photo.base64 }} />
-        <Button title="分享照片" onPress={sharePic} />
-        {hasMediaLibraryPermission ? <Button title="傳送照片" onPress={uploadFiles} /> : undefined}
-        <Button title="重新拍照" onPress={() => setPhoto(undefined)} />
+        <TouchableOpacity style={styles.button} title="分享照片" onPress={sharePic}>
+           <Text style={styles.buttonText}>分享照片 </Text>
+         
+        </TouchableOpacity>
+        {hasMediaLibraryPermission ? <TouchableOpacity style={styles.button}  onPress={savePhoto}>
+        <Text style={styles.buttonText}>保存照片 </Text>
+        </TouchableOpacity> : undefined}
+        <TouchableOpacity style={styles.button} onPress={() => setPhoto(undefined)}>
+        <Text style={styles.buttonText}>重新拍照 </Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -131,14 +171,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent:'flex-end',
   },
   buttonContainer: {
-    backgroundColor: '#fff',
-    alignSelf: 'flex-end'
+    backgroundColor: '#ffe',
+    alignSelf: 'flex-end',
   },
   preview: {
     alignSelf: 'stretch',
-    flex: 1
-  }
+    flex: 1,    
+  },
+  button: {
+    margin: 5,
+    padding: 10,
+    paddingLeft: 20,
+    paddingRight: 20,
+    backgroundColor: '#406E9F',
+    borderRadius: 9,
+    alignItems: 'stretch',
+    justifyContent: 'space-between',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
 });

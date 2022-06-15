@@ -31,7 +31,7 @@ function homestack() {
           ),
         }}   component={HomeScreen} />
         <Stack.Screen name="Details"  options={{
-          title: "相機",
+          title: "返回",
           headerStyle: {
             backgroundColor: '#f4511e',
           },

@@ -11,7 +11,7 @@ const windowHeight = Dimensions.get('window').height;
     return (
       <View>
        <Image source={require('../assets/welcomehome.jpg')}
-        style={{ width: windowWidth, height: 450 }}
+        style={{ width: 400, height: 450 }}
         onPress={() => navigation.navigate('Details')}/>
 
          <Button
